@@ -1,28 +1,28 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-#docker-compose run --rm --service-ports \
-#  --entrypoint /workspace/scripts/run.sh \
-#  isaac-lab \
-#  "$@"
+CUDA="${CUDA_VISIBLE_DEVICES:-0}"
 
-CUDA=${CUDA_VISIBLE_DEVICES:-0}
-CONTAINER_WS=/workspace/Project
-# Default to loading ports from docker-compose.yml
+# repo root
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
+
+COMPOSE_FILE="$REPO_ROOT/docker/docker-compose.yaml"
+
+HOST_WS="${WORKSPACE:?Set WORKSPACE to host project path (e.g. WORKSPACE=~/isaac_ws/IsaacLab)}"
+CONTAINER_WS="/workspace/Project"
+
 PORT_ARGS="--service-ports"
-
-if [ "$FOXGLOVE" = "1" ]; then
-    # -p cannot be used with --service-ports
-    # Note: If your yaml defines other necessary ports, append them here (e.g., -p 8384:8384 -p 8888:8888)
-    PORT_ARGS="-p 8765:8765"
+if [ "${FOXGLOVE:-0}" = "1" ]; then
+  PORT_ARGS="-p 8765:8765"
 fi
 
-sudo docker-compose run --rm $PORT_ARGS \
-  --name ${USER}-isaac-lab-gpu${CUDA} \
-  -e CUDA_VISIBLE_DEVICES=$CUDA \
-  -e WORKSPACE=$CONTAINER_WS \
+docker compose -f "$COMPOSE_FILE" run --rm $PORT_ARGS \
+  --name "${USER}-isaac-lab-gpu${CUDA}" \
+  -e CUDA_VISIBLE_DEVICES="$CUDA" \
+  -e WORKSPACE="$CONTAINER_WS" \
   -e PYTHONPATH="/workspace/isaaclab:$CONTAINER_WS" \
-  -v ${WORKSPACE}:$CONTAINER_WS \
-  --entrypoint /workspace/scripts/run.sh \
+  -v "$HOST_WS:$CONTAINER_WS" \
+  --entrypoint /workspace/scripts/entrypoint.sh \
   isaac-lab \
   "$@"
-

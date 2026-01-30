@@ -64,14 +64,15 @@ chmod 600 ~/.netrc
 基本用法：
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 WORKSPACE=/abs/path/to/your_project ./python.sh <your_entry.py> <args...>
+CUDA_VISIBLE_DEVICES=1 WORKSPACE=/abs/path/to/your_project ./scripts/host/run.sh <your_entry.py> <args...>
 ```
 
 示例（rsl_rl）：
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 WORKSPACE=~/isaac_ws/IsaacLab \
-  ./python.sh scripts/reinforcement_learning/rsl_rl/train.py \
+CUDA_VISIBLE_DEVICES=1 WORKSPACE=~/IsaacLab \
+  ./scripts/host/run.sh \
+  scripts/reinforcement_learning/rsl_rl/train.py \
   --task=Isaac-Velocity-Rough-Anymal-C-v0 --headless
 ```
 

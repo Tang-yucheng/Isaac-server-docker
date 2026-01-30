@@ -4,36 +4,37 @@ services:
   isaac-lab:
     #image: nvcr.io/nvidia/isaac-lab:2.2.0
     #image: jameshoi/isaac-lab:2.2.0
-    image: ${ISAAC_IMAGE:-jameshoi/isaac-lab:2.1.1}
-    container_name: ${CONTAINER_NAME:-isaac-lab}
+    image: jameshoi/isaac-lab:2.1.1
+    container_name: isaac-lab
     stdin_open: true
     tty: true
     runtime: nvidia
     entrypoint: bash
-    shm_size: ${SHM_SIZE:-16gb}
-    ipc: ${IPC_MODE:-host}
     environment:
-      - ACCEPT_EULA=${ACCEPT_EULA:-Y}
-      - PRIVACY_CONSENT=${PRIVACY_CONSENT:-Y}
-      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
-      - NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:-all}
-      - PYTHONPATH=${PYTHONPATH:-/workspace/isaaclab:/workspace/Visual_FM}
-      - WORKSPACE=${WORKSPACE:-/workspace/Visual_FM}
-      - RESOLUTION=${RESOLUTION:-1920x1080x24}
-      - ENABLE_NOVNC=${ENABLE_NOVNC:-false}
-      - DISPLAY=${DISPLAY:-:1}
-    # ports:
-    #   - "8311:8311"
-    #   - "9111:3389"
+      - ACCEPT_EULA=Y
+      - PRIVACY_CONSENT=Y
+      - CUDA_VISIBLE_DEVICES=0
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - PYTHONPATH=/workspace/isaaclab:/workspace/Project
+      - WORKSPACE=/workspace/Project
+      - RESOLUTION=1920x1080x24
+      - ENABLE_NOVNC=false
+      - DISPLAY=:1 # fake 
+        # ports:
+        #   - "8311:8311"
+        #   - "9111:3389"
     volumes:
-      - ./isaac-sim/cache/kit:/isaac-sim/kit/cache:rw
-      - ./isaac-sim/cache/ov:/root/.cache/ov:rw
-      - ./isaac-sim/cache/pip:/root/.cache/pip:rw
-      - ./isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw
-      - ./isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw
-      - ./isaac-sim/data:/root/.local/share/ov/data:rw
-      - ./isaac-sim/documents:/root/Documents:rw
-      - ./isaac-sim/logs:/root/.nvidia-omniverse/logs:rw
-      - ./scripts:/workspace/scripts
-      - ./netrc:/root/.netrc:ro # for wandb, first time need touch .netrc
+      # Isaac Sim runtime caches/logs/data (host: repo_root/runtime/isaac-sim/*)
+      - ../runtime/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw
+      - ../runtime/isaac-sim/cache/ov:/root/.cache/ov:rw
+      - ../runtime/isaac-sim/cache/pip:/root/.cache/pip:rw
+      - ../runtime/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw
+      - ../runtime/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw
+      - ../runtime/isaac-sim/data:/root/.local/share/ov/data:rw
+      - ../runtime/isaac-sim/documents:/root/Documents:rw
+      - ../runtime/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw
+      # Container entrypoint / helper scripts (host: repo_root/scripts/container)
+      - ../scripts/container:/workspace/scripts:ro
+      # Credentials (recommended: use host ~/.netrc, not a repo file)
+      - ${HOME}/.netrc:/root/.netrc:ro
     restart: unless-stopped
