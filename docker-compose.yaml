@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  isaac-lab:
+    #image: nvcr.io/nvidia/isaac-lab:2.2.0
+    #image: jameshoi/isaac-lab:2.2.0
+    image: jameshoi/isaac-lab:2.1.1
+    container_name: isaac-lab
+    stdin_open: true
+    tty: true
+    runtime: nvidia
+    entrypoint: bash
+    environment:
+      - ACCEPT_EULA=Y
+      - PRIVACY_CONSENT=Y
+      - CUDA_VISIBLE_DEVICES=0
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - PYTHONPATH=/workspace/isaaclab:/workspace/Visual_FM
+      - WORKSPACE=/workspace/Visual_FM
+      - RESOLUTION=1920x1080x24
+      - ENABLE_NOVNC=false
+      - DISPLAY=:1 # fake 
+        # ports:
+        #   - "8311:8311"
+        #   - "9111:3389"
+    volumes:
+      - ./isaac-sim/cache/kit:/isaac-sim/kit/cache:rw
+      - ./isaac-sim/cache/ov:/root/.cache/ov:rw
+      - ./isaac-sim/cache/pip:/root/.cache/pip:rw
+      - ./isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw
+      - ./isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw
+      - ./isaac-sim/data:/root/.local/share/ov/data:rw
+      - ./isaac-sim/documents:/root/Documents:rw
+      - ./isaac-sim/logs:/root/.nvidia-omniverse/logs:rw
+      - ./scripts:/workspace/scripts
+      - ./netrc:/root/.netrc:ro # for wandb, first time need touch .netrc
+    restart: unless-stopped

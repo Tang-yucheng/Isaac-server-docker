@@ -1,0 +1,36 @@
+# =========================
+# Secrets (NEVER COMMIT)
+# =========================
+netrc
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.token
+
+# =========================
+# Isaac Sim / Omniverse runtime (keep dirs optional, ignore contents)
+# =========================
+isaac-sim/cache/**
+isaac-sim/data/**
+isaac-sim/documents/**
+isaac-sim/logs/**
+!isaac-sim/cache/.gitkeep
+!isaac-sim/data/.gitkeep
+!isaac-sim/documents/.gitkeep
+!isaac-sim/logs/.gitkeep
+
+# =========================
+# Python / IDE / OS
+# =========================
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+.vscode/
+.idea/
+
+.DS_Store
+Thumbs.db
