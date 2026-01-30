@@ -2,24 +2,17 @@
 # Secrets (NEVER COMMIT)
 # =========================
 netrc
+**/netrc
 .env
 .env.*
 !.env.example
-*.key
-*.pem
-*.token
 
 # =========================
-# Isaac Sim / Omniverse runtime (keep dirs optional, ignore contents)
+# Runtime artifacts (NEVER COMMIT)
 # =========================
-isaac-sim/cache/**
-isaac-sim/data/**
-isaac-sim/documents/**
-isaac-sim/logs/**
-!isaac-sim/cache/.gitkeep
-!isaac-sim/data/.gitkeep
-!isaac-sim/documents/.gitkeep
-!isaac-sim/logs/.gitkeep
+runtime/**
+!runtime/**/
+!runtime/**/.gitkeep
 
 # =========================
 # Python / IDE / OS

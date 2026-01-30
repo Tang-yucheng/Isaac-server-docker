@@ -1,0 +1,4 @@
+
+machine api.wandb.ai
+  login user
+  password YOUR_WANDB_API_KEY_HERE
