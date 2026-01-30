@@ -1,30 +1,55 @@
-version: '3.8'
+# NOTE:
+# - 该 compose 文件面向“一次性容器”用法：docker compose run --rm ...
+# - 容器真正的 entrypoint/WORKSPACE/CUDA_VISIBLE_DEVICES/端口映射通常由外层 run 脚本覆盖控制。
+# - 这里主要负责：镜像选择 + GPU 能力 + Isaac Sim 缓存/日志挂载 + 脚本挂载等“稳定配置”。
 
 services:
   isaac-lab:
-    #image: nvcr.io/nvidia/isaac-lab:2.2.0
-    #image: jameshoi/isaac-lab:2.2.0
-    image: jameshoi/isaac-lab:2.1.1
-    container_name: isaac-lab
+    # 预构建镜像（含 Isaac Sim + Isaac Lab 运行时环境）
+    image: swarm-rl/isaac-lab:2.1.0
+
+    # 允许交互式终端（便于进入容器调试）
     stdin_open: true
     tty: true
-    runtime: nvidia
-    entrypoint: bash
+
+    # GPU 支持：较新 Compose 推荐用 gpus，而不是旧的 runtime: nvidia
+    # 外层脚本会通过 CUDA_VISIBLE_DEVICES 决定使用哪张卡（逻辑可见卡号），这里负责启用 GPU 能力本身。
+    gpus: all
+
     environment:
+      # Isaac Sim/Isaac Lab 需要同意 EULA 与隐私条款（否则可能启动失败或交互阻塞）
       - ACCEPT_EULA=Y
       - PRIVACY_CONSENT=Y
-      - CUDA_VISIBLE_DEVICES=0
+
+      # NVIDIA 容器驱动能力挂载开关：
+      # - compute/utility：CUDA 计算与 nvidia-smi 等工具
+      # - graphics/display：图形渲染/显示相关（若你需要 GUI/noVNC）
+      # 若你只做 headless 训练，可考虑收窄为 compute,utility。
       - NVIDIA_DRIVER_CAPABILITIES=all
-      - PYTHONPATH=/workspace/isaaclab:/workspace/Project
-      - WORKSPACE=/workspace/Project
+
+      # 虚拟显示相关默认值（配合 entrypoint.sh 内 Xvfb/noVNC）
       - RESOLUTION=1920x1080x24
+      - DISPLAY=:1
+
+      # NOTE: 下面这些通常会被外层 run 脚本用 -e 覆盖（放这里主要是提供默认值）
+      - CUDA_VISIBLE_DEVICES=0
       - ENABLE_NOVNC=false
-      - DISPLAY=:1 # fake 
-        # ports:
-        #   - "8311:8311"
-        #   - "9111:3389"
+      - WORKSPACE=/workspace/Project
+      - PYTHONPATH=/workspace/Project:/workspace/isaaclab
+
+    # 端口映射：
+    # - 一次性 run 模式下，通常更推荐在外层脚本用 -p 按需开放端口（更安全、更灵活）。
+    # - 如果你坚持用 --service-ports，则必须在这里定义 ports；否则 --service-ports 不会发布任何端口。
+    # ports:
+    #   - "8311:8311"   # noVNC Web 入口
+    #   - "5901:5901"   # x11vnc 端口（可选，通常只需要 noVNC）
+    #   - "8765:8765"   # foxglove（如你需要）
+
     volumes:
-      # Isaac Sim runtime caches/logs/data (host: repo_root/runtime/isaac-sim/*)
+      # -------------------------------
+      # Isaac Sim runtime caches/logs/data
+      # 目的：加速二次启动、保留 shader/kit/omniverse 缓存与日志，避免每次 run 都从零生成。
+      # -------------------------------
       - ../runtime/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw
       - ../runtime/isaac-sim/cache/ov:/root/.cache/ov:rw
       - ../runtime/isaac-sim/cache/pip:/root/.cache/pip:rw
@@ -33,8 +58,15 @@ services:
       - ../runtime/isaac-sim/data:/root/.local/share/ov/data:rw
       - ../runtime/isaac-sim/documents:/root/Documents:rw
       - ../runtime/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw
-      # Container entrypoint / helper scripts (host: repo_root/scripts/container)
+
+      # -------------------------------
+      # 容器内使用的 entrypoint / helper scripts
+      # 外层 run 脚本一般会：--entrypoint /workspace/scripts/entrypoint.sh
+      # -------------------------------
       - ../scripts/container:/workspace/scripts:ro
-      # Credentials (recommended: use host ~/.netrc, not a repo file)
+
+      # -------------------------------
+      # 凭据：建议挂载宿主机 ~/.netrc（只读）
+      # NOTE: 若宿主机不存在该文件，compose run 会失败；可改为由外层脚本“存在才挂载”。
+      # -------------------------------
       - ${HOME}/.netrc:/root/.netrc:ro
-    restart: unless-stopped

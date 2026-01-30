@@ -1,33 +1,19 @@
 FROM nvcr.io/nvidia/isaac-lab:2.1.0
+# FROM nvcr.io/nvidia/isaac-lab:2.2.0
 
-SHELL ["/bin/bash", "-cx"]
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
-# change apt source
-RUN sed -i 's/security.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
-RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
+# apt 镜像源（按需）
+RUN sed -i 's/security.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g; s/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends xvfb x11vnc novnc xterm fluxbox \
+ && rm -rf /var/lib/apt/lists/*
 
-# install
-RUN rm -rf /var/lib/apt/lists/* && \
-    apt update && \
-    apt install -y xvfb x11vnc novnc xterm fluxbox
+# pip 镜像源（root）
+RUN mkdir -p /root/.pip \
+ && printf "[global]\nindex-url=https://pypi.tuna.tsinghua.edu.cn/simple\ntrusted-host=pypi.tuna.tsinghua.edu.cn\n" > /root/.pip/pip.conf
 
-# change pypi source
-RUN mkdir -p /root/.pip && \
-    echo '[global]' > /root/.pip/pip.conf && \
-    echo 'index-url = https://pypi.tuna.tsinghua.edu.cn/simple' >> /root/.pip/pip.conf && \
-    echo 'trusted-host = pypi.tuna.tsinghua.edu.cn' >> /root/.pip/pip.conf
-
-RUN /workspace/isaaclab/_isaac_sim/kit/python/bin/python3 -m pip install toml
-RUN /workspace/isaaclab/_isaac_sim/kit/python/bin/python3 -m pip install protobuf==3.19.0
-RUN /workspace/isaaclab/_isaac_sim/kit/python/bin/python3 -m pip install mlflow
-RUN /workspace/isaaclab/_isaac_sim/kit/python/bin/python3 -m pip install foxglove-sdk
-
-COPY IsaacLab/ /workspace/isaaclab_211/
-RUN ln -s /isaac-sim /workspace/isaaclab_211/_isaac_sim
-RUN /workspace/isaaclab_211/_isaac_sim/kit/python/bin/python3 -m pip install -e /workspace/isaaclab_211/source/isaaclab
-RUN /workspace/isaaclab_211/_isaac_sim/kit/python/bin/python3 -m pip install -e /workspace/isaaclab_211/source/isaaclab_assets
-RUN /workspace/isaaclab_211/_isaac_sim/kit/python/bin/python3 -m pip install -e /workspace/isaaclab_211/source/isaaclab_mimic
-RUN /workspace/isaaclab_211/_isaac_sim/kit/python/bin/python3 -m pip install -e /workspace/isaaclab_211/source/isaaclab_rl
-RUN /workspace/isaaclab_211/_isaac_sim/kit/python/bin/python3 -m pip install -e /workspace/isaaclab_211/source/isaaclab_tasks
-
-ENTRYPOINT ["/workspace/scripts/entrypoint.sh"]
+# 用 isaaclab.sh -p（避免写死 Kit Python 路径）
+RUN cd /workspace/isaaclab \
+ && ./isaaclab.sh -p -m pip install -U pip \
+ && ./isaaclab.sh -p -m pip install foxglove-sdk loguru mlflow toml
