@@ -12,24 +12,24 @@
 
 ## 目录结构（约定）
 
-- `docker-compose.yaml`  
+- `docker/docker-compose.yaml`  
   定义基础服务 `isaac-lab`（镜像、GPU runtime、通用环境变量、缓存/日志/数据挂载等）。
 
-- `python.sh`  
+- `scripts/host/run.sh`  
   推荐的训练入口脚本（在宿主机执行）。负责：
   - 选择 GPU：`CUDA_VISIBLE_DEVICES=<id>`
   - 指定工作区路径：`WORKSPACE=<path>`
   - 创建一次性训练容器并传参
   - 容器命名：`${USER}-isaac-lab-gpu${CUDA}`
 
-- `scripts/run.sh`  
+- `scripts/container/entrypoint.sh`  
   容器内启动脚本：设置渲染相关环境（可选 noVNC），进入工作区，按需安装本地 editable 包，然后启动 IsaacLab 运行入口。
 
-- `isaac-sim/`  
+- `runtime/isaac-sim/`  
   宿主机侧的 Isaac Sim/Omniverse 运行期目录（cache/log/data/documents）。  
   **注意：该目录内容默认不进入 git，仅保留骨架。**
 
-- `netrc.example`  
+- `config/netrc.example`  
   `~/.netrc` 模板（用于 wandb 等需要认证的工具）。真实 `netrc` 不应提交到 git。
 
 ---
@@ -78,8 +78,8 @@ CUDA_VISIBLE_DEVICES=1 WORKSPACE=~/IsaacLab \
 
 说明：
 - `CUDA_VISIBLE_DEVICES=1`：在容器内只暴露 1 号 GPU。容器内部会把“可见的第一张 GPU”重映射为 `cuda:0`（属预期行为）。
-- `WORKSPACE=...`：宿主机上的项目路径，会被挂载到容器内（通常是 `/workspace/Project`，以 `python.sh` 为准）。
-- `./python.sh ...`：通过 compose 启动一次性训练容器，并将参数传递给容器内的启动脚本。
+- `WORKSPACE=...`：宿主机上的项目路径，会被挂载到容器内（通常是 `/workspace/Project`，以 `run.sh` 为准）。
+- `./scripts/host/run.sh ...`：通过 compose 启动一次性训练容器，并将参数传递给容器内的启动脚本。
 
 ---
 
@@ -100,7 +100,7 @@ docker stop ${USER}-isaac-lab-gpu1
 
 ## 数据与缓存（重要）
 
-`docker-compose.yaml` 将 Isaac Sim / Omniverse 的运行期产物挂载到宿主机 `./isaac-sim/`，用于 **加速 + 持久化**，典型包括：
+`docker-compose.yaml` 将 Isaac Sim / Omniverse 的运行期产物挂载到宿主机 `./runtime/isaac-sim/`，用于 **加速 + 持久化**，典型包括：
 - Kit / OV / pip 缓存
 - GLCache / ComputeCache
 - Omniverse logs
@@ -124,7 +124,7 @@ docker stop ${USER}-isaac-lab-gpu1
 ---
 
 ## TODO（后续补充）
-- [ ] 说明如何将 `isaac-sim/` 放到数据盘（软链接/绑定挂载）
+- [ ] 说明如何将 `runtime/isaac-sim/` 放到数据盘（软链接/绑定挂载）
 - [ ] noVNC / 端口映射的使用说明与示例
 - [ ] 多用户共用服务器的磁盘/权限最佳实践
 - [ ] 常见错误排查（editable 安装路径、protobuf 版本冲突、GPU “bad state”等）
