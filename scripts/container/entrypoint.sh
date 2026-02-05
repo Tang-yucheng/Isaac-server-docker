@@ -52,10 +52,18 @@ git config --global --get-all safe.directory | grep -Fxq "${WORKSPACE}" \
 # -----------------------------------------------------------------------------
 "$KITPY" -p -m pip install -U pip
 
-"$KITPY" -p -m pip install -e ./envs/lib/IsaacLab/source/isaaclab
-"$KITPY" -p -m pip install -e ./reinforcement_learning/lib/rsl_rl
-"$KITPY" -p -m pip install -e ./reinforcement_learning/lib/skrl
-"$KITPY" -p -m pip install -e ./reinforcement_learning/lib/stable-baselines3
+# "$KITPY" -p -m pip install -e ./envs/lib/IsaacLab/source/isaaclab
+# "$KITPY" -p -m pip install -e ./reinforcement_learning/lib/rsl_rl
+# "$KITPY" -p -m pip install -e ./reinforcement_learning/lib/skrl
+# "$KITPY" -p -m pip install -e ./reinforcement_learning/lib/stable-baselines3
+
+# ./lib/IsaacLab/isaaclab.sh --install
+"$KITPY" -p -m pip install -e lib/rsl_rl
+"$KITPY" -p -m pip install -e lib/skrl
+"$KITPY" -p -m pip install -e lib/stable-baselines3
+"$KITPY" -p -m pip install -e .
+
+"$KITPY" -p -m pip install rtree
 
 # -----------------------------------------------------------------------------
 # 最终执行：进入 IsaacLab（-p 表示用 Kit Python/IsaacSim 环境运行）
