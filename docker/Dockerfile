@@ -1,5 +1,7 @@
-FROM nvcr.io/nvidia/isaac-lab:2.1.0
+# FROM nvcr.io/nvidia/isaac-lab:2.1.0
 # FROM nvcr.io/nvidia/isaac-lab:2.2.0
+# FROM nvcr.io/nvidia/isaac-lab:2.3.1
+FROM nvcr.io/nvidia/isaac-lab:2.3.2
 
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 

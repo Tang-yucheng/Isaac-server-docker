@@ -6,7 +6,7 @@
 services:
   isaac-lab:
     # 预构建镜像（含 Isaac Sim + Isaac Lab 运行时环境）
-    image: swarm-rl/isaac-lab:2.1.0
+    image: swarm-rl/isaac-lab:2.3.2
 
     # 允许交互式终端（便于进入容器调试）
     stdin_open: true
